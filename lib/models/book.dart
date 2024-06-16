@@ -18,17 +18,3 @@ class Book {
   
 }
 
-/*class Chapter {
-  final List<String> verses;
-
-  Chapter({required this.verses});
-
-  factory Chapter.fromJson(Map<String, dynamic> json) {
-    var list = json['verses'] as List;
-    List<String> versesList = List<String>.from(list);
-
-    return Chapter(
-      verses: versesList,
-    );
-  }
-}*/

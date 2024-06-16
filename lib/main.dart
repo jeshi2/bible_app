@@ -1,7 +1,5 @@
 import 'dart:convert';
-
 import 'package:bible_app/models/book.dart';
-import 'package:bible_app/utils/json_loader.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
 
@@ -64,7 +62,8 @@ class _HomeScreenState extends State<HomeScreen> {
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
               child: books.isNotEmpty
                   ? RoundedRectangle(
                       books: books,
@@ -91,9 +90,13 @@ class _HomeScreenState extends State<HomeScreen> {
                     children: [
                       Text(
                         'Chapter ${chapterIndex + 1}',
-                        style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                        style: const TextStyle(
+                            fontSize: 24, fontWeight: FontWeight.bold),
                       ),
-                      ...selectedBook!.chapters[chapterIndex].asMap().entries.map((entry) {
+                      ...selectedBook!.chapters[chapterIndex]
+                          .asMap()
+                          .entries
+                          .map((entry) {
                         int verseIndex = entry.key;
                         String verse = entry.value;
                         return Padding(
@@ -103,11 +106,15 @@ class _HomeScreenState extends State<HomeScreen> {
                               children: [
                                 TextSpan(
                                   text: '${verseIndex + 1} ',
-                                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black),
+                                  style: const TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.black),
                                 ),
                                 TextSpan(
                                   text: verse,
-                                  style: const TextStyle(fontSize: 16, color: Colors.black),
+                                  style: const TextStyle(
+                                      fontSize: 16, color: Colors.black),
                                 ),
                               ],
                             ),
@@ -131,7 +138,11 @@ class RoundedRectangle extends StatelessWidget {
   final Book selectedBook;
   final ValueChanged<Book> onBookSelected;
 
-  const RoundedRectangle({super.key, required this.books, required this.selectedBook, required this.onBookSelected});
+  const RoundedRectangle(
+      {super.key,
+      required this.books,
+      required this.selectedBook,
+      required this.onBookSelected});
 
   @override
   Widget build(BuildContext context) {
