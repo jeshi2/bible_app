@@ -1,6 +1,9 @@
+import 'dart:convert';
+
 import 'package:bible_app/models/book.dart';
 import 'package:bible_app/utils/json_loader.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show rootBundle;
 
 void main() {
   runApp(const BibleApp());
@@ -31,13 +34,22 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  late Future<List<Book>> futureBooks;
+  List<Book> books = [];
   Book? selectedBook;
 
   @override
   void initState() {
     super.initState();
-    futureBooks = loadBooks();
+    loadBooks();
+  }
+
+  void loadBooks() async {
+    final String response = await rootBundle.loadString('assets/en_kjv.json');
+    final List<dynamic> data = json.decode(response);
+    setState(() {
+      books = data.map((json) => Book.fromJson(json)).toList();
+      selectedBook = books.isNotEmpty ? books.first : null;
+    });
   }
 
   @override
@@ -53,29 +65,17 @@ class _HomeScreenState extends State<HomeScreen> {
           children: [
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-              child: FutureBuilder<List<Book>>(
-                future: futureBooks,
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const CircularProgressIndicator();
-                  } else if (snapshot.hasError) {
-                    return Text('Error: ${snapshot.error}');
-                  } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                    return const Text('No books found');
-                  } else {
-                    selectedBook ??= snapshot.data!.first;
-                    return RoundedRectangle(
-                      books: snapshot.data!,
+              child: books.isNotEmpty
+                  ? RoundedRectangle(
+                      books: books,
                       selectedBook: selectedBook!,
                       onBookSelected: (book) {
                         setState(() {
                           selectedBook = book;
                         });
                       },
-                    );
-                  }
-                },
-              ),
+                    )
+                  : const SizedBox.shrink(),
             ),
           ],
         ),
@@ -120,7 +120,7 @@ class _HomeScreenState extends State<HomeScreen> {
               },
             )
           : const Center(
-              child: CircularProgressIndicator(),
+              child: Text('No books available'),
             ),
     );
   }
