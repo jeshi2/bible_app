@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:ui';
 import 'package:bible_app/models/book.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
@@ -41,8 +42,9 @@ class _HomeScreenState extends State<HomeScreen> {
     loadBooks();
   }
 
+  // Load Books from json file
   void loadBooks() async {
-    final String response = await rootBundle.loadString('assets/en_kjv.json');
+    final String response = await rootBundle.loadString('assets/en_bbe.json');
     final List<dynamic> data = json.decode(response);
     setState(() {
       books = data.map((json) => Book.fromJson(json)).toList();
@@ -79,6 +81,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
         ),
       ),
+      // Chapter display
       body: selectedBook != null
           ? ListView.builder(
               itemCount: selectedBook!.chapters.length,
@@ -91,36 +94,46 @@ class _HomeScreenState extends State<HomeScreen> {
                       Text(
                         'Chapter ${chapterIndex + 1}',
                         style: const TextStyle(
-                            fontSize: 24, fontWeight: FontWeight.bold),
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.teal),
                       ),
-                      ...selectedBook!.chapters[chapterIndex]
-                          .asMap()
-                          .entries
-                          .map((entry) {
-                        int verseIndex = entry.key;
-                        String verse = entry.value;
-                        return Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 4.0),
-                          child: RichText(
-                            text: TextSpan(
-                              children: [
-                                TextSpan(
-                                  text: '${verseIndex + 1} ',
-                                  style: const TextStyle(
-                                      fontSize: 16,
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 8.0),
+                        child: RichText(
+                          text: TextSpan(
+                            children: selectedBook!.chapters[chapterIndex]
+                                .asMap()
+                                .entries
+                                .map((entry) {
+                              int verseIndex = entry.key;
+                              String verse = entry.value;
+                              return TextSpan(
+                                children: [
+                                  // verses numbering
+                                  TextSpan(
+                                    text: '${verseIndex + 1} ',
+                                    style: const TextStyle(
+                                      fontSize: 12,
                                       fontWeight: FontWeight.bold,
-                                      color: Colors.black),
-                                ),
-                                TextSpan(
-                                  text: verse,
-                                  style: const TextStyle(
-                                      fontSize: 16, color: Colors.black),
-                                ),
-                              ],
-                            ),
+                                      color: Colors.red,
+                                      fontFeatures: [
+                                        FontFeature.superscripts()
+                                      ],
+                                    ),
+                                  ),
+                                  TextSpan(
+                                    // verses content
+                                    text: '$verse ',
+                                    style: const TextStyle(
+                                        fontSize: 16, color: Colors.black),
+                                  ),
+                                ],
+                              );
+                            }).toList(),
                           ),
-                        );
-                      }).toList(),
+                        ),
+                      ),
                     ],
                   ),
                 );
@@ -153,7 +166,7 @@ class RoundedRectangle extends StatelessWidget {
         borderRadius: BorderRadius.circular(25.0),
         boxShadow: const [
           BoxShadow(
-            color: Colors.black26,
+            color: Colors.teal,
             blurRadius: 4.0,
             offset: Offset(0, 2),
           ),
@@ -163,12 +176,12 @@ class RoundedRectangle extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 16.0),
         child: Row(
           children: [
-            const Icon(Icons.menu, color: Colors.grey),
+            const Icon(Icons.menu, color: Colors.teal),
             Expanded(
               child: Center(
                 child: DropdownButton<Book>(
                   value: selectedBook,
-                  icon: const Icon(Icons.arrow_drop_down, color: Colors.grey),
+                  icon: const Icon(Icons.arrow_drop_down, color: Colors.teal),
                   iconSize: 24,
                   elevation: 16,
                   style: const TextStyle(color: Colors.black),
@@ -187,7 +200,7 @@ class RoundedRectangle extends StatelessWidget {
                 ),
               ),
             ),
-            const Icon(Icons.search, color: Colors.grey),
+            const Icon(Icons.search, color: Colors.teal),
           ],
         ),
       ),

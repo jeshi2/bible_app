@@ -1,5 +1,3 @@
-
-
 class Book {
   final String abbrev;
   final String name;
@@ -11,10 +9,8 @@ class Book {
     return Book(
       abbrev: json['abbrev'],
       name: json['name'],
-      chapters: List<List<String>>.from(json['chapters'].map((chapter) => List<String>.from(chapter))),
+      chapters: List<List<String>>.from(
+          json['chapters'].map((chapter) => List<String>.from(chapter))),
     );
   }
-
-  
 }
-
