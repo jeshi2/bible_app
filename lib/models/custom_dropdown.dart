@@ -29,6 +29,14 @@ class _CustomDropdownState extends State<CustomDropdown> {
     _layerLink = LayerLink();
   }
 
+  @override
+  void dispose() {
+    if (_isOpen) {
+      _closeDropdown();
+    }
+    super.dispose();
+  }
+
   OverlayEntry _createOverlayEntry() {
     RenderBox renderBox = context.findRenderObject() as RenderBox;
     var size = renderBox.size;
@@ -107,7 +115,6 @@ class _CustomDropdownState extends State<CustomDropdown> {
           padding: const EdgeInsets.symmetric(horizontal: 16.0),
           child: Row(
             children: [
-              
               Expanded(
                 child: Center(
                   child: Text(
@@ -116,7 +123,10 @@ class _CustomDropdownState extends State<CustomDropdown> {
                   ),
                 ),
               ),
-              //const Icon(Icons.arrow_drop_down, color: Colors.teal),
+              Icon(
+                _isOpen ? Icons.arrow_drop_up : Icons.arrow_drop_down,
+                color: Colors.teal,
+              ),
             ],
           ),
         ),

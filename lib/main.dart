@@ -52,6 +52,11 @@ class _HomeScreenState extends State<HomeScreen> {
       selectedBook = books.isNotEmpty ? books.first : null;
     });
   }
+  void onBookSelected(Book book) {
+    setState(() {
+      selectedBook = book;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -147,16 +152,48 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 }
 
-class RoundedRectangle extends StatelessWidget {
+class RoundedRectangle extends StatefulWidget {
   final List<Book> books;
   final Book selectedBook;
   final ValueChanged<Book> onBookSelected;
 
-  const RoundedRectangle(
-      {super.key,
-      required this.books,
-      required this.selectedBook,
-      required this.onBookSelected});
+  const RoundedRectangle({
+    Key? key,
+    required this.books,
+    required this.selectedBook,
+    required this.onBookSelected,
+  }) : super(key: key);
+
+  @override
+  // ignore: library_private_types_in_public_api
+  _RoundedRectangleState createState() => _RoundedRectangleState();
+}
+
+class _RoundedRectangleState extends State<RoundedRectangle> {
+  late TextEditingController _searchController;
+  List<Book> filteredBooks = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _searchController = TextEditingController();
+    filteredBooks = widget.books;
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  void searchBooks(String query) {
+    setState(() {
+      filteredBooks = widget.books
+          .where((book) => book.name.toLowerCase().contains(query.toLowerCase()))
+          .toList();
+    });
+  }
+  
 
   @override
   Widget build(BuildContext context) {
@@ -181,16 +218,104 @@ class RoundedRectangle extends StatelessWidget {
             Expanded(
               child: Center(
                 child: CustomDropdown(
-                  books: books,
-                  selectedBook: selectedBook,
-                  onBookSelected: onBookSelected,
+                  books: filteredBooks,
+                  selectedBook: widget.selectedBook,
+                  onBookSelected: widget.onBookSelected,
                 ),
               ),
             ),
-            const Icon(Icons.search, color: Colors.teal),
+            IconButton(
+              icon: const Icon(Icons.search, color: Colors.teal),
+              onPressed: () {
+                showSearch(
+                  context: context,
+                  delegate: BookSearchDelegate(widget.books, widget.onBookSelected),
+                );
+              },
+            ),
           ],
         ),
       ),
+    );
+  }
+}
+
+class BookSearchDelegate extends SearchDelegate<void> {
+  final List<Book> books;
+  final ValueChanged<Book> onBookSelected;
+
+  BookSearchDelegate(this.books, this.onBookSelected);
+
+  @override
+  List<Widget> buildActions(BuildContext context) {
+    return [
+      IconButton(
+        icon: const Icon(Icons.clear),
+        onPressed: () {
+          query = '';
+          showSuggestions(context);
+        },
+      ),
+    ];
+  }
+
+  @override
+  Widget buildLeading(BuildContext context) {
+    return IconButton(
+      icon: const Icon(Icons.arrow_back),
+      onPressed: () {
+        close(context, null);
+      },
+    );
+  }
+
+  @override
+  Widget buildResults(BuildContext context) {
+    return _buildSearchResults();
+  }
+
+  @override
+  Widget buildSuggestions(BuildContext context) {
+    return _buildSearchResults();
+  }
+
+  Widget _buildSearchResults() {
+    final List<Book> matchedBooks = query.isEmpty
+        ? books
+        : books
+            .where((book) =>
+                book.name.toLowerCase().contains(query.toLowerCase()))
+            .toList();
+
+    return GridView.builder(
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        mainAxisSpacing: 8.0,
+        crossAxisSpacing: 8.0,
+        childAspectRatio: 4.0,
+      ),
+      itemCount: matchedBooks.length,
+      itemBuilder: (context, index) {
+        final Book book = matchedBooks[index];
+        return GestureDetector(
+          onTap: () {
+            onBookSelected(book);
+            close(context, null);
+          },
+          child: Card(
+            elevation: 2.0,
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Center(
+                child: Text(
+                  book.name,
+                  style: const TextStyle(fontSize: 16.0),
+                ),
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 }
