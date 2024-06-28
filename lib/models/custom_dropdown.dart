@@ -40,6 +40,13 @@ class _CustomDropdownState extends State<CustomDropdown> {
   OverlayEntry _createOverlayEntry() {
     RenderBox renderBox = context.findRenderObject() as RenderBox;
     var size = renderBox.size;
+    var screenHeight = MediaQuery.of(context).size.height;
+
+    double dropdownHeight = 800.0;
+    // Adjust the height if it exceeds the available space
+    if (size.height + dropdownHeight > screenHeight) {
+      dropdownHeight = screenHeight - size.height - 10.0;
+    }
 
     return OverlayEntry(
       builder: (context) => Positioned(
@@ -51,7 +58,7 @@ class _CustomDropdownState extends State<CustomDropdown> {
           child: Material(
             elevation: 4.0,
             child: Container(
-              height: 300.0,
+              height: dropdownHeight,
               color: Colors.white,
               child: GridView.builder(
                 gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -61,19 +68,28 @@ class _CustomDropdownState extends State<CustomDropdown> {
                 itemCount: widget.books.length,
                 itemBuilder: (context, index) {
                   Book book = widget.books[index];
-                  return ListTile(
-                    title: Text(
-                      book.name,
-                      style: TextStyle(
-                        color: book == widget.selectedBook
+                  return Padding(
+                    padding: const EdgeInsets.all(4.0),
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20.0),
+                        ),
+                        backgroundColor: book == widget.selectedBook
                             ? Colors.orange
-                            : Colors.black,
+                            : Colors.teal,
+                      ),
+                      onPressed: () {
+                        widget.onBookSelected(book);
+                        _closeDropdown();
+                      },
+                      child: Text(
+                        book.name,
+                        style: const TextStyle(
+                          color: Colors.white,
+                        ),
                       ),
                     ),
-                    onTap: () {
-                      widget.onBookSelected(book);
-                      _closeDropdown();
-                    },
                   );
                 },
               ),
@@ -130,7 +146,6 @@ class _CustomDropdownState extends State<CustomDropdown> {
             ],
           ),
         ),
-        
       ),
     );
   }
