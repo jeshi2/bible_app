@@ -7,11 +7,11 @@ class CustomDropdown extends StatefulWidget {
   final ValueChanged<Book> onBookSelected;
 
   const CustomDropdown({
-    super.key,
+    Key? key,
     required this.books,
     required this.selectedBook,
     required this.onBookSelected,
-  });
+  }) : super(key: key);
 
   @override
   // ignore: library_private_types_in_public_api
@@ -19,93 +19,108 @@ class CustomDropdown extends StatefulWidget {
 }
 
 class _CustomDropdownState extends State<CustomDropdown> {
+  late OverlayEntry _overlayEntry;
+  late LayerLink _layerLink;
+  bool _isOpen = false;
+
   @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: 50.0,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(25.0),
-        boxShadow: const [
-          BoxShadow(
-            color: Colors.black26,
-            blurRadius: 4.0,
-            offset: Offset(0, 2),
-          ),
-        ],
-      ),
-      child: InkWell(
-        onTap: () {
-          showDialog(
-            context: context,
-            builder: (context) {
-              return Dialog(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20.0),
+  void initState() {
+    super.initState();
+    _layerLink = LayerLink();
+  }
+
+  OverlayEntry _createOverlayEntry() {
+    RenderBox renderBox = context.findRenderObject() as RenderBox;
+    var size = renderBox.size;
+
+    return OverlayEntry(
+      builder: (context) => Positioned(
+        width: size.width,
+        child: CompositedTransformFollower(
+          link: _layerLink,
+          showWhenUnlinked: false,
+          offset: Offset(0, size.height + 5.0),
+          child: Material(
+            elevation: 4.0,
+            child: Container(
+              height: 300.0,
+              color: Colors.white,
+              child: GridView.builder(
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  childAspectRatio: 3,
                 ),
-                child: Container(
-                  padding: const EdgeInsets.all(16.0),
-                  height: 400.0,
-                  child: Column(
-                    children: [
-                      Expanded(
-                        child: GridView.builder(
-                          gridDelegate:
-                              const SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 2,
-                            crossAxisSpacing: 10.0,
-                            mainAxisSpacing: 10.0,
-                            childAspectRatio: 3,
-                          ),
-                          itemCount: widget.books.length,
-                          itemBuilder: (context, index) {
-                            Book book = widget.books[index];
-                            return GestureDetector(
-                              onTap: () {
-                                widget.onBookSelected(book);
-                                Navigator.of(context).pop();
-                              },
-                              child: Container(
-                                alignment: Alignment.center,
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(15.0),
-                                  border: Border.all(color: Colors.blue),
-                                ),
-                                child: Text(book.name),
-                              ),
-                            );
-                          },
-                        ),
+                itemCount: widget.books.length,
+                itemBuilder: (context, index) {
+                  Book book = widget.books[index];
+                  return ListTile(
+                    title: Text(
+                      book.name,
+                      style: TextStyle(
+                        color: book == widget.selectedBook
+                            ? Colors.orange
+                            : Colors.black,
                       ),
-                      const SizedBox(height: 10),
-                      TextButton(
-                        onPressed: () {
-                          Navigator.of(context).pop();
-                        },
-                        child: const Text('Close'),
-                      ),
-                    ],
-                  ),
-                ),
-              );
-            },
-          );
-        },
-        child: Row(
-          children: [
-            const Icon(Icons.menu, color: Colors.grey),
-            Expanded(
-              child: Center(
-                child: Text(
-                  widget.selectedBook.name,
-                  style: const TextStyle(color: Colors.black),
-                ),
+                    ),
+                    onTap: () {
+                      widget.onBookSelected(book);
+                      _closeDropdown();
+                    },
+                  );
+                },
               ),
             ),
-            const Icon(Icons.arrow_drop_down, color: Colors.grey),
-            const Icon(Icons.search, color: Colors.grey),
-          ],
+          ),
         ),
+      ),
+    );
+  }
+
+  void _openDropdown() {
+    _overlayEntry = _createOverlayEntry();
+    Overlay.of(context)!.insert(_overlayEntry);
+    setState(() {
+      _isOpen = true;
+    });
+  }
+
+  void _closeDropdown() {
+    _overlayEntry.remove();
+    setState(() {
+      _isOpen = false;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return CompositedTransformTarget(
+      link: _layerLink,
+      child: GestureDetector(
+        onTap: () {
+          if (_isOpen) {
+            _closeDropdown();
+          } else {
+            _openDropdown();
+          }
+        },
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+          child: Row(
+            children: [
+              
+              Expanded(
+                child: Center(
+                  child: Text(
+                    widget.selectedBook.name,
+                    style: const TextStyle(color: Colors.black),
+                  ),
+                ),
+              ),
+              //const Icon(Icons.arrow_drop_down, color: Colors.teal),
+            ],
+          ),
+        ),
+        
       ),
     );
   }

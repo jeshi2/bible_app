@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:ui';
 import 'package:bible_app/models/book.dart';
+import 'package:bible_app/models/custom_dropdown.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
 
@@ -179,24 +180,10 @@ class RoundedRectangle extends StatelessWidget {
             const Icon(Icons.menu, color: Colors.teal),
             Expanded(
               child: Center(
-                child: DropdownButton<Book>(
-                  value: selectedBook,
-                  icon: const Icon(Icons.arrow_drop_down, color: Colors.teal),
-                  iconSize: 24,
-                  elevation: 16,
-                  style: const TextStyle(color: Colors.black),
-                  underline: Container(
-                    height: 0,
-                  ),
-                  onChanged: (Book? newValue) {
-                    onBookSelected(newValue!);
-                  },
-                  items: books.map<DropdownMenuItem<Book>>((Book book) {
-                    return DropdownMenuItem<Book>(
-                      value: book,
-                      child: Text(book.name),
-                    );
-                  }).toList(),
+                child: CustomDropdown(
+                  books: books,
+                  selectedBook: selectedBook,
+                  onBookSelected: onBookSelected,
                 ),
               ),
             ),
