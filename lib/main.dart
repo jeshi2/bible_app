@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:bible_app/models/book.dart';
 import 'package:bible_app/models/custom_dropdown.dart';
 import 'package:bible_app/screens/chpater_screen.dart';
+import 'package:bible_app/utils/app_drawer.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
 
@@ -35,6 +36,8 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  // ignore: prefer_final_fields
+  GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   List<Book> books = [];
   Book? selectedBook;
 
@@ -60,9 +63,11 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      key: _scaffoldKey,
       appBar: AppBar(
         centerTitle: true,
         toolbarHeight: 100.0,
@@ -83,12 +88,14 @@ class _HomeScreenState extends State<HomeScreen> {
                           selectedBook = book;
                         });
                       },
+                      scaffoldKey: _scaffoldKey,
                     )
                   : const SizedBox.shrink(),
             ),
           ],
         ),
       ),
+      drawer: const AppDrawer(), 
       // Chapter display
       body: selectedBook != null
           ? ListView.builder(
@@ -158,12 +165,14 @@ class RoundedRectangle extends StatefulWidget {
   final List<Book> books;
   final Book selectedBook;
   final ValueChanged<Book> onBookSelected;
+  final GlobalKey<ScaffoldState> scaffoldKey;
 
   const RoundedRectangle({
     Key? key,
     required this.books,
     required this.selectedBook,
     required this.onBookSelected,
+    required this.scaffoldKey,
   }) : super(key: key);
 
   @override
@@ -197,6 +206,10 @@ class _RoundedRectangleState extends State<RoundedRectangle> {
     });
   }
 
+  void openDrawer() {
+    widget.scaffoldKey.currentState!.openDrawer();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -215,8 +228,17 @@ class _RoundedRectangleState extends State<RoundedRectangle> {
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16.0),
         child: Row(
+          
           children: [
-            const Icon(Icons.menu, color: Colors.teal),
+            // Sidemenu icon
+            IconButton(
+              icon: const Icon(Icons.menu, color: Colors.teal),
+              onPressed: () {
+                widget.scaffoldKey.currentState!
+                    .openDrawer(); // Open the drawer
+              },
+            ),
+            
             Expanded(
               child: Center(
                 child: CustomDropdown(
@@ -227,6 +249,7 @@ class _RoundedRectangleState extends State<RoundedRectangle> {
                 ),
               ),
             ),
+            // Search Icon
             IconButton(
               icon: const Icon(Icons.search, color: Colors.teal),
               onPressed: () {
