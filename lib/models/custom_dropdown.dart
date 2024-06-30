@@ -118,7 +118,7 @@ class _CustomDropdownState extends State<CustomDropdown> {
     var size = renderBox.size;
     var screenHeight = MediaQuery.of(context).size.height;
 
-    double dropdownHeight = 300.0;
+    double dropdownHeight = 800.0;
     if (size.height + dropdownHeight > screenHeight) {
       dropdownHeight = screenHeight - size.height - 10.0;
     }

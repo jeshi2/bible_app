@@ -248,6 +248,23 @@ class BookSearchDelegate extends SearchDelegate<void> {
   BookSearchDelegate(this.books, this.onBookSelected);
 
   @override
+  ThemeData appBarTheme(BuildContext context) {
+    return Theme.of(context).copyWith(
+      appBarTheme: const AppBarTheme(
+        backgroundColor: Colors.teal, // Set AppBar background color to teal
+        foregroundColor: Colors.white, // Set AppBar text and icons color to white
+      ),
+      textTheme: const TextTheme(
+        
+        titleLarge: TextStyle(color: Colors.white), // Set the search text color to white
+      ),
+      inputDecorationTheme: const InputDecorationTheme(
+        hintStyle: TextStyle(color: Colors.white), // Set the hint text color to white
+      ),
+    );
+  }
+
+  @override
   List<Widget> buildActions(BuildContext context) {
     return [
       IconButton(
@@ -288,35 +305,46 @@ class BookSearchDelegate extends SearchDelegate<void> {
                 book.name.toLowerCase().contains(query.toLowerCase()))
             .toList();
 
-    return GridView.builder(
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        mainAxisSpacing: 8.0,
-        crossAxisSpacing: 8.0,
-        childAspectRatio: 4.0,
-      ),
-      itemCount: matchedBooks.length,
-      itemBuilder: (context, index) {
-        final Book book = matchedBooks[index];
-        return GestureDetector(
-          onTap: () {
-            onBookSelected(book);
-            close(context, null);
-          },
-          child: Card(
-            elevation: 2.0,
-            child: Padding(
-              padding: const EdgeInsets.all(8.0),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0), // Padding added to search results
+      child: GridView.builder(
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 2, // Increased crossAxisCount to make boxes smaller
+          mainAxisSpacing: 8.0,
+          crossAxisSpacing: 8.0,
+          childAspectRatio: 4.0, // Adjusted aspect ratio to make boxes smaller
+        ),
+        itemCount: matchedBooks.length,
+        itemBuilder: (context, index) {
+          final Book book = matchedBooks[index];
+          return GestureDetector(
+            onTap: () {
+              onBookSelected(book);
+              close(context, null);
+            },
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.red,
+                borderRadius: BorderRadius.circular(16.0), // Rounded corners
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.2),
+                    spreadRadius: 2,
+                    blurRadius: 4,
+                    offset: const Offset(0, 2), // changes position of shadow
+                  ),
+                ],
+              ),
               child: Center(
                 child: Text(
                   book.name,
-                  style: const TextStyle(fontSize: 16.0),
+                  style: const TextStyle(fontSize: 14.0, color: Colors.white), // Adjust font size to fit smaller box
                 ),
               ),
             ),
-          ),
-        );
-      },
+          );
+        },
+      ),
     );
   }
 }
