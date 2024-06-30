@@ -81,6 +81,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           selectedBook = book;
                         });
                       },
+                      
                     )
                   : const SizedBox.shrink(),
             ),
@@ -220,7 +221,7 @@ class _RoundedRectangleState extends State<RoundedRectangle> {
                 child: CustomDropdown(
                   books: filteredBooks,
                   selectedBook: widget.selectedBook,
-                  onBookSelected: widget.onBookSelected,
+                  onBookSelected: widget.onBookSelected, onChapterSelected: (int value) {  },
                 ),
               ),
             ),
