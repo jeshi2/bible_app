@@ -247,6 +247,8 @@ class _RoundedRectangleState extends State<RoundedRectangle> {
 class BookSearchDelegate extends SearchDelegate<void> {
   final List<Book> books;
   final ValueChanged<Book> onBookSelected;
+  bool isSearching = false;
+  int totalOccurrences = 0;
 
   BookSearchDelegate(this.books, this.onBookSelected);
 
@@ -294,15 +296,30 @@ class BookSearchDelegate extends SearchDelegate<void> {
 
   @override
   Widget buildResults(BuildContext context) {
+    totalOccurrences = 0;
     return _buildSearchResults();
   }
 
   @override
   Widget buildSuggestions(BuildContext context) {
-    return _buildSearchResults();
+    totalOccurrences = 0;
+    return query.isEmpty
+        ? const Center(
+            child: Text(
+              'Type a word to search in the Bible',
+              style: TextStyle(fontSize: 18, color: Colors.grey),
+            ),
+          )
+        : _buildSearchResults();
   }
 
   Widget _buildSearchResults() {
+    if (query.isEmpty) {
+      return Container();
+    }
+
+    isSearching = true;
+
     final List<Map<String, dynamic>> matchedVerses = [];
 
     for (var book in books) {
@@ -320,44 +337,114 @@ class BookSearchDelegate extends SearchDelegate<void> {
               'verseIndex': verseIndex,
               'verse': verse,
             });
+            totalOccurrences++;
           }
         }
       }
     }
 
-    return ListView.builder(
-      itemCount: matchedVerses.length,
-      itemBuilder: (context, index) {
-        final match = matchedVerses[index];
-        final Book book = match['book'];
-        final int chapterIndex = match['chapterIndex'];
-        final int verseIndex = match['verseIndex'];
-        final String verse = match['verse'];
+    isSearching = false;
 
-        return Card(
-          elevation: 2.0,
-          child: ListTile(
-            title: Text(
-              '${book.name} ${chapterIndex + 1}:${verseIndex + 1}',
-              style: const TextStyle(fontWeight: FontWeight.bold),
+    if (matchedVerses.isEmpty) {
+      return Center(
+        child: Text(
+          'No results found for "$query"',
+          style: const TextStyle(fontSize: 18, color: Colors.red),
+        ),
+      );
+    }
+
+    return isSearching
+        ? const Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                CircularProgressIndicator(),
+                SizedBox(height: 10),
+                Text("Please wait..."),
+              ],
             ),
-            subtitle: Text(verse),
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => ChapterScreen(
-                    book: book,
-                    chapterIndex: chapterIndex,
-                    highlightedVerseIndex: verseIndex,
-                    highlightedText: query,
+          )
+        : Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Total occurrences of "$query": $totalOccurrences',
+                  style: const TextStyle(
+                      fontWeight: FontWeight.bold, fontSize: 18),
+                ),
+                const SizedBox(height: 10),
+                Expanded(
+                  child: ListView.builder(
+                    itemCount: matchedVerses.length,
+                    itemBuilder: (context, index) {
+                      final match = matchedVerses[index];
+                      final Book book = match['book'];
+                      final int chapterIndex = match['chapterIndex'];
+                      final int verseIndex = match['verseIndex'];
+                      final String verse = match['verse'];
+
+                      return Card(
+                        elevation: 2.0,
+                        child: ListTile(
+                          title: Text(
+                            '${book.name} ${chapterIndex + 1}:${verseIndex + 1}',
+                            style: const TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                          subtitle: RichText(
+                            text: TextSpan(
+                              text: '',
+                              style: DefaultTextStyle.of(context).style,
+                              children: _highlightOccurrences(verse, query),
+                            ),
+                          ),
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => ChapterScreen(
+                                  book: book,
+                                  chapterIndex: chapterIndex,
+                                  highlightedVerseIndex: verseIndex,
+                                  highlightedText: query,
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      );
+                    },
                   ),
                 ),
-              );
-            },
-          ),
-        );
-      },
-    );
+              ],
+            ),
+          );
+  }
+
+  List<TextSpan> _highlightOccurrences(String text, String query) {
+    final List<TextSpan> spans = [];
+    int start = 0;
+    int indexOfHighlight;
+
+    while ((indexOfHighlight =
+            text.toLowerCase().indexOf(query.toLowerCase(), start)) !=
+        -1) {
+      if (indexOfHighlight > start) {
+        spans.add(TextSpan(text: text.substring(start, indexOfHighlight)));
+      }
+      spans.add(TextSpan(
+        text: text.substring(indexOfHighlight, indexOfHighlight + query.length),
+        style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.red),
+      ));
+      start = indexOfHighlight + query.length;
+    }
+
+    if (start < text.length) {
+      spans.add(TextSpan(text: text.substring(start)));
+    }
+
+    return spans;
   }
 }
