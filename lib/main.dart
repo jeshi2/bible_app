@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:ui';
 import 'package:bible_app/models/book.dart';
 import 'package:bible_app/models/custom_dropdown.dart';
+import 'package:bible_app/screens/chpater_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
 
@@ -52,6 +53,7 @@ class _HomeScreenState extends State<HomeScreen> {
       selectedBook = books.isNotEmpty ? books.first : null;
     });
   }
+
   void onBookSelected(Book book) {
     setState(() {
       selectedBook = book;
@@ -81,7 +83,6 @@ class _HomeScreenState extends State<HomeScreen> {
                           selectedBook = book;
                         });
                       },
-                      
                     )
                   : const SizedBox.shrink(),
             ),
@@ -190,11 +191,11 @@ class _RoundedRectangleState extends State<RoundedRectangle> {
   void searchBooks(String query) {
     setState(() {
       filteredBooks = widget.books
-          .where((book) => book.name.toLowerCase().contains(query.toLowerCase()))
+          .where(
+              (book) => book.name.toLowerCase().contains(query.toLowerCase()))
           .toList();
     });
   }
-  
 
   @override
   Widget build(BuildContext context) {
@@ -221,7 +222,8 @@ class _RoundedRectangleState extends State<RoundedRectangle> {
                 child: CustomDropdown(
                   books: filteredBooks,
                   selectedBook: widget.selectedBook,
-                  onBookSelected: widget.onBookSelected, onChapterSelected: (int value) {  },
+                  onBookSelected: widget.onBookSelected,
+                  onChapterSelected: (int value) {},
                 ),
               ),
             ),
@@ -230,7 +232,8 @@ class _RoundedRectangleState extends State<RoundedRectangle> {
               onPressed: () {
                 showSearch(
                   context: context,
-                  delegate: BookSearchDelegate(widget.books, widget.onBookSelected),
+                  delegate:
+                      BookSearchDelegate(widget.books, widget.onBookSelected),
                 );
               },
             ),
@@ -252,14 +255,16 @@ class BookSearchDelegate extends SearchDelegate<void> {
     return Theme.of(context).copyWith(
       appBarTheme: const AppBarTheme(
         backgroundColor: Colors.teal, // Set AppBar background color to teal
-        foregroundColor: Colors.white, // Set AppBar text and icons color to white
+        foregroundColor:
+            Colors.white, // Set AppBar text and icons color to white
       ),
       textTheme: const TextTheme(
-        
-        titleLarge: TextStyle(color: Colors.white), // Set the search text color to white
+        titleLarge: TextStyle(
+            color: Colors.white), // Set the search text color to white
       ),
       inputDecorationTheme: const InputDecorationTheme(
-        hintStyle: TextStyle(color: Colors.white), // Set the hint text color to white
+        hintStyle:
+            TextStyle(color: Colors.white), // Set the hint text color to white
       ),
     );
   }
@@ -298,53 +303,61 @@ class BookSearchDelegate extends SearchDelegate<void> {
   }
 
   Widget _buildSearchResults() {
-    final List<Book> matchedBooks = query.isEmpty
-        ? books
-        : books
-            .where((book) =>
-                book.name.toLowerCase().contains(query.toLowerCase()))
-            .toList();
+    final List<Map<String, dynamic>> matchedVerses = [];
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0), // Padding added to search results
-      child: GridView.builder(
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2, // Increased crossAxisCount to make boxes smaller
-          mainAxisSpacing: 8.0,
-          crossAxisSpacing: 8.0,
-          childAspectRatio: 4.0, // Adjusted aspect ratio to make boxes smaller
-        ),
-        itemCount: matchedBooks.length,
-        itemBuilder: (context, index) {
-          final Book book = matchedBooks[index];
-          return GestureDetector(
-            onTap: () {
-              onBookSelected(book);
-              close(context, null);
-            },
-            child: Container(
-              decoration: BoxDecoration(
-                color: Colors.red,
-                borderRadius: BorderRadius.circular(16.0), // Rounded corners
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.2),
-                    spreadRadius: 2,
-                    blurRadius: 4,
-                    offset: const Offset(0, 2), // changes position of shadow
-                  ),
-                ],
-              ),
-              child: Center(
-                child: Text(
-                  book.name,
-                  style: const TextStyle(fontSize: 14.0, color: Colors.white), // Adjust font size to fit smaller box
-                ),
-              ),
+    for (var book in books) {
+      for (var chapterIndex = 0;
+          chapterIndex < book.chapters.length;
+          chapterIndex++) {
+        for (var verseIndex = 0;
+            verseIndex < book.chapters[chapterIndex].length;
+            verseIndex++) {
+          final verse = book.chapters[chapterIndex][verseIndex];
+          if (verse.toLowerCase().contains(query.toLowerCase())) {
+            matchedVerses.add({
+              'book': book,
+              'chapterIndex': chapterIndex,
+              'verseIndex': verseIndex,
+              'verse': verse,
+            });
+          }
+        }
+      }
+    }
+
+    return ListView.builder(
+      itemCount: matchedVerses.length,
+      itemBuilder: (context, index) {
+        final match = matchedVerses[index];
+        final Book book = match['book'];
+        final int chapterIndex = match['chapterIndex'];
+        final int verseIndex = match['verseIndex'];
+        final String verse = match['verse'];
+
+        return Card(
+          elevation: 2.0,
+          child: ListTile(
+            title: Text(
+              '${book.name} ${chapterIndex + 1}:${verseIndex + 1}',
+              style: const TextStyle(fontWeight: FontWeight.bold),
             ),
-          );
-        },
-      ),
+            subtitle: Text(verse),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => ChapterScreen(
+                    book: book,
+                    chapterIndex: chapterIndex,
+                    highlightedVerseIndex: verseIndex,
+                    highlightedText: query,
+                  ),
+                ),
+              );
+            },
+          ),
+        );
+      },
     );
   }
 }
