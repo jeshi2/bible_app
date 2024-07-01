@@ -1,4 +1,5 @@
 import 'package:bible_app/screens/bookmark_page.dart';
+import 'package:bible_app/screens/note_page.dart';
 import 'package:flutter/material.dart';
 
 class AppDrawer extends StatelessWidget {
@@ -36,6 +37,18 @@ class AppDrawer extends StatelessWidget {
                 context,
                 MaterialPageRoute(
                   builder: (context) => BookmarkScreen(bookmarks: bookmarks),
+                ),
+              );
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.note, color: Colors.teal),
+            title: const Text('Notes'),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const NoteScreen(),
                 ),
               );
             },
