@@ -13,12 +13,17 @@ class AppDrawer extends StatelessWidget {
         children: <Widget>[
           const DrawerHeader(
             decoration: BoxDecoration(
-              color: Colors.teal,
+              //color: Colors.teal,
+              image: DecorationImage(
+                image: AssetImage('assets/images/bible.jpg'),
+                fit: BoxFit.cover,
+              ),
             ),
             child: Text(
               'Bible',
               style: TextStyle(
-                color: Colors.white,
+                color: Colors.teal,
+                fontWeight: FontWeight.w900,
                 fontSize: 24,
               ),
             ),
