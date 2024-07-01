@@ -1,7 +1,11 @@
+// ignore_for_file: avoid_print
+
+import 'package:bible_app/utils/bookmark_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:bible_app/models/book.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'dart:ui';
+import 'package:provider/provider.dart';
 
 class ChapterScreen extends StatefulWidget {
   final Book book;
@@ -36,31 +40,36 @@ class _ChapterScreenState extends State<ChapterScreen> {
   }
 
   Future<void> initTts() async {
-    await flutterTts.setLanguage("en-US"); // Set language (adjust as needed)
-    await flutterTts.setPitch(pitch); // Set initial pitch
-    await flutterTts.setSpeechRate(speed); // Set initial speech rate
-    flutterTts.setStartHandler(() {
-      setState(() {
-        isPlaying = true;
+    try {
+      await flutterTts.setLanguage("en-US");
+      await flutterTts.setPitch(pitch);
+      await flutterTts.setSpeechRate(speed);
+      flutterTts.setStartHandler(() {
+        setState(() {
+          isPlaying = true;
+        });
       });
-    });
-    flutterTts.setCompletionHandler(() {
-      setState(() {
-        isPlaying = false;
-        currentPlayingVerseIndex = null;
+      flutterTts.setCompletionHandler(() {
+        setState(() {
+          isPlaying = false;
+          currentPlayingVerseIndex = null;
+        });
       });
-    });
-    flutterTts.setErrorHandler((msg) {
-      setState(() {
-        isPlaying = false;
-        currentPlayingVerseIndex = null;
+      flutterTts.setErrorHandler((msg) {
+        setState(() {
+          isPlaying = false;
+          currentPlayingVerseIndex = null;
+        });
+        print("Error: $msg");
       });
-    });
+    } catch (e) {
+      print("Error initializing TTS: $e");
+    }
   }
 
   Future<void> speakVerse(String text, int verseIndex) async {
-    await flutterTts.setPitch(pitch); // Apply current pitch setting
-    await flutterTts.setSpeechRate(speed); // Apply current speed setting
+    await flutterTts.setPitch(pitch);
+    await flutterTts.setSpeechRate(speed);
     await flutterTts.speak(text);
     setState(() {
       currentPlayingVerseIndex = verseIndex;
@@ -126,6 +135,17 @@ class _ChapterScreenState extends State<ChapterScreen> {
             return Padding(
               padding: const EdgeInsets.symmetric(vertical: 4.0),
               child: GestureDetector(
+                onLongPress: () {
+                  Provider.of<BookmarkProvider>(context, listen: false)
+                      .addBookmark(
+                    '${widget.book.name} ${widget.chapterIndex + 1}:${verseIndex + 1} - $verse',
+                  );
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Verse added to bookmarks'),
+                    ),
+                  );
+                },
                 onTap: () {
                   if (isPlaying && currentPlayingVerseIndex == verseIndex) {
                     flutterTts.stop();
@@ -156,11 +176,13 @@ class _ChapterScreenState extends State<ChapterScreen> {
                           color: currentPlayingVerseIndex == verseIndex
                               ? Colors.blue
                               : Colors.black,
-                          backgroundColor: widget.highlightedVerseIndex == verseIndex &&
-                              widget.highlightedText != null &&
-                              verse.toLowerCase().contains(widget.highlightedText!.toLowerCase())
-                              ? Colors.yellow
-                              : Colors.transparent,
+                          backgroundColor:
+                              widget.highlightedVerseIndex == verseIndex &&
+                                      widget.highlightedText != null &&
+                                      verse.toLowerCase().contains(
+                                          widget.highlightedText!.toLowerCase())
+                                  ? Colors.yellow
+                                  : Colors.transparent,
                         ),
                       ),
                     ],
@@ -176,8 +198,11 @@ class _ChapterScreenState extends State<ChapterScreen> {
 
   void speakChapter() {
     StringBuffer chapterText = StringBuffer();
-    for (var verseIndex = 0; verseIndex < widget.book.chapters[widget.chapterIndex].length; verseIndex++) {
-      chapterText.write("${widget.book.chapters[widget.chapterIndex][verseIndex]} ");
+    for (var verseIndex = 0;
+        verseIndex < widget.book.chapters[widget.chapterIndex].length;
+        verseIndex++) {
+      chapterText
+          .write("${widget.book.chapters[widget.chapterIndex][verseIndex]} ");
     }
     speakVerse(chapterText.toString(), -1);
   }

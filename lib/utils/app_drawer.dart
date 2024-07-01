@@ -1,7 +1,9 @@
+import 'package:bible_app/screens/bookmark_page.dart';
 import 'package:flutter/material.dart';
 
 class AppDrawer extends StatelessWidget {
-  const AppDrawer({super.key});
+  final List<String> bookmarks;
+  const AppDrawer({super.key, required this.bookmarks});
 
   @override
   Widget build(BuildContext context) {
@@ -22,7 +24,25 @@ class AppDrawer extends StatelessWidget {
             ),
           ),
           ListTile(
-            title: const Text('Item 1'),
+            leading: const Icon(Icons.bookmark, color: Colors.teal),
+            title: const Text('Bookmarks'),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => BookmarkScreen(bookmarks: bookmarks),
+                ),
+              );
+            },
+          ),
+          ListTile(
+            title: const Text('Item 2'),
+            onTap: () {
+              Navigator.pop(context);
+            },
+          ),
+          ListTile(
+            title: const Text('Item 2'),
             onTap: () {
               Navigator.pop(context);
             },

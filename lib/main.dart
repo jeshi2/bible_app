@@ -4,11 +4,20 @@ import 'package:bible_app/models/book.dart';
 import 'package:bible_app/models/custom_dropdown.dart';
 import 'package:bible_app/screens/chpater_screen.dart';
 import 'package:bible_app/utils/app_drawer.dart';
+import 'package:bible_app/utils/bookmark_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
+import 'package:provider/provider.dart';
 
 void main() {
-  runApp(const BibleApp());
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => BookmarkProvider()),
+      ],
+      child: const BibleApp(),
+    ),
+    );
 }
 
 class BibleApp extends StatelessWidget {
@@ -40,6 +49,8 @@ class _HomeScreenState extends State<HomeScreen> {
   GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   List<Book> books = [];
   Book? selectedBook;
+  
+  get bookmarkedVerses => null;
 
   @override
   void initState() {
@@ -95,7 +106,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
         ),
       ),
-      drawer: const AppDrawer(), 
+      
       // Chapter display
       body: selectedBook != null
           ? ListView.builder(
@@ -157,6 +168,7 @@ class _HomeScreenState extends State<HomeScreen> {
           : const Center(
               child: Text('No books available'),
             ),
+            drawer: const AppDrawer(bookmarks: [],),
     );
   }
 }
